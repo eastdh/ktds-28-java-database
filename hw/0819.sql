@@ -54,17 +54,20 @@ SELECT MAX(e.SALARY)
   FROM EMPLOYEES e 
 ;
 --10. 부서별 사원 수를 조회하시오.
--- 10: 12 rows
+-- 10: 11 rows
 SELECT e.DEPARTMENT_ID 
       , COUNT(e.EMPLOYEE_ID )
   FROM EMPLOYEES e 
+ WHERE e.DEPARTMENT_ID IS NOT NULL
  GROUP BY e.DEPARTMENT_ID 
+ 
 ;
 --11. 부서별 평균 급여를 조회하시오.
--- 11: 12 rows
+-- 11: 11 rows
 SELECT e.DEPARTMENT_ID 
       , AVG(e.SALARY )
   FROM EMPLOYEES e 
+ WHERE e.DEPARTMENT_ID IS NOT NULL
  GROUP BY e.DEPARTMENT_ID 
 ;
 --12. 직무아이디별 최고 급여와 평균 급여를 조회하시오.
@@ -76,16 +79,13 @@ SELECT e.JOB_ID
  GROUP BY e.JOB_ID 
 ;
 --13. 부서아이디별, 직무아이디별 사원 수를 함께 조회하시오.
---
+-- 13: 20 rows
 SELECT e.DEPARTMENT_ID 
-      , COUNT(e.EMPLOYEE_ID )
+      , e.JOB_ID 
+      , COUNT(e.EMPLOYEE_ID)
   FROM EMPLOYEES e 
- GROUP BY e.DEPARTMENT_ID 
-;
-SELECT e.JOB_ID  
-      , COUNT(e.EMPLOYEE_ID )
-  FROM EMPLOYEES e 
- GROUP BY e.JOB_ID  
+ GROUP BY e.DEPARTMENT_ID, e.JOB_ID 
+ ORDER BY e.DEPARTMENT_ID  
 ;
 --14. 상사번호별로 관리하는 사원 수를 조회하시오.
 -- 14: 19 rows
@@ -140,21 +140,84 @@ SELECT e.MANAGER_ID
 HAVING COUNT(e.EMPLOYEE_ID ) >= 2
 ;
 --20. 부서별 급여 합계가 30000을 초과하는 부서아이디만 조회하시오.
---
+-- 20: 4 rows
+SELECT e.DEPARTMENT_ID 
+      , SUM(e.SALARY )
+  FROM EMPLOYEES e 
+ GROUP BY e.DEPARTMENT_ID 
+HAVING SUM(e.SALARY ) >= 30000
+;
 --21. 관리하는 사원이 2명 이상인 매니저만 조회하시오.
---
+-- 21: 15 rows
+SELECT e.MANAGER_ID 
+      , COUNT(e.EMPLOYEE_ID )
+  FROM EMPLOYEES e 
+ GROUP BY e.MANAGER_ID 
+HAVING COUNT(e.EMPLOYEE_ID ) >= 2
+;
 --22. 전체 평균 급여보다 높은 급여를 받는 사원을 조회하시오.
---
+-- 22: 51 rows
+SELECT e.FIRST_NAME
+     , e.LAST_NAME 
+     , e.SALARY 
+  FROM EMPLOYEES e
+ WHERE e.SALARY > (SELECT AVG(e.SALARY)
+					FROM EMPLOYEES e )
+;
 --23. 'IT' 부서에서 근무하는 사원을 조회하시오.
---
+-- 23: 5 rows
+SELECT e.FIRST_NAME 
+     , e.LAST_NAME 
+  FROM EMPLOYEES e 
+ WHERE e.DEPARTMENT_ID = (SELECT d.DEPARTMENT_ID 
+						  FROM DEPARTMENTS d
+						 WHERE d.DEPARTMENT_NAME = 'IT') 
+;
 --24. 가장 급여가 높은 사원을 조회하시오.
---
+-- 24: 1 row
+SELECT e.FIRST_NAME
+     , e.LAST_NAME 
+     , e.SALARY 
+  FROM EMPLOYEES e
+ WHERE e.SALARY = (SELECT MAX(e.SALARY)
+					FROM EMPLOYEES e )
+;						 
 --25. 'King'이라는 성을 가진 사원과 같은 부서에서 근무하는 사원을 조회하시오. (본인 제외)
---
+-- 25: 35 rows
+SELECT e.FIRST_NAME 
+     , e.LAST_NAME 
+     , e.DEPARTMENT_ID 
+  FROM EMPLOYEES e 
+ WHERE e.LAST_NAME != 'King'
+   AND e.DEPARTMENT_ID IN (SELECT e.DEPARTMENT_ID 
+						  FROM EMPLOYEES e 
+						 WHERE e.LAST_NAME = 'King')	
+;						 
 --26. 사원이 한 명도 없는 부서번호와 부서명을 조회하시오.
---
+-- 26: 16 rows
+SELECT d.DEPARTMENT_ID 
+     , d.DEPARTMENT_NAME 
+  FROM DEPARTMENTS d 
+ WHERE d.DEPARTMENT_ID NOT IN (SELECT DISTINCT e.DEPARTMENT_ID  
+								  FROM EMPLOYEES e 
+								 WHERE e.DEPARTMENT_ID IS NOT NULL)
+;
+  
 --27. 'Seattle'에 위치한 부서에서 근무하는 사원을 조회하시오.
 --
 --28. 직무변경 이력이 있는 사원의 이름과 성을 조회하시오.
---
+-- 28: 7 rows
+SELECT e.FIRST_NAME 
+     , e.LAST_NAME 
+  FROM EMPLOYEES e 
+ WHERE e.EMPLOYEE_ID IN (SELECT DISTINCT jh.EMPLOYEE_ID  
+  							FROM JOB_HISTORY jh )
+;
 --29. 이직 이력이 없는 사원의 이름과 성을 조회하시오.
+-- 29: 100 rows
+SELECT e.FIRST_NAME 
+     , e.LAST_NAME 
+  FROM EMPLOYEES e 
+ WHERE e.EMPLOYEE_ID NOT IN (SELECT DISTINCT jh.EMPLOYEE_ID  
+  							FROM JOB_HISTORY jh )
+;
