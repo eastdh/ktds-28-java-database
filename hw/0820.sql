@@ -1,0 +1,128 @@
+--1. 사원 이름과 부서명을 함께 조회하시오.
+-- 1. 106 rows
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+  INNER JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
+--2. 사원 이름과 직무명을 함께 조회하시오.
+-- 2. 107 rows
+SELECT e.FIRST_NAME 
+     , j.JOB_TITLE 
+  FROM EMPLOYEES e 
+  JOIN JOBS j ON e.JOB_ID = j.JOB_ID
+;
+--3. 사원 이름, 부서명, 근무 도시를 조회하시오.
+-- 3. 106 rows
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+     , l.CITY 
+  FROM EMPLOYEES e 
+  JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+;
+--4. 부서명과 국가명을 조회하시오.
+-- 4. 27 rows
+SELECT d.DEPARTMENT_NAME 
+     , c.COUNTRY_NAME 
+  FROM DEPARTMENTS d 
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+  JOIN COUNTRIES c ON l.COUNTRY_ID = c.COUNTRY_ID
+;
+--5. 직무변경 이력이 있는 사원의 이름과 이전 직무를 조회하시오.
+-- 5. 10 rows
+SELECT e.FIRST_NAME 
+     , j.JOB_TITLE 
+  FROM EMPLOYEES e 
+  JOIN JOB_HISTORY jh ON e.EMPLOYEE_ID = jh.EMPLOYEE_ID 
+  JOIN JOBS j ON jh.JOB_ID = j.JOB_ID
+;
+--6. 부서번호와 부서장의 이름을 조회하시오.
+-- 6. 11 rows
+SELECT d.DEPARTMENT_ID 
+     , e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+  FROM DEPARTMENTS d 
+  JOIN EMPLOYEES e ON d.MANAGER_ID = e.EMPLOYEE_ID
+;
+--7. 사원 이름, 부서명, 직무명을 한 번에 조회하시오.
+-- 7. 106 rows
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , d.DEPARTMENT_NAME 
+     , j.JOB_TITLE 
+  FROM EMPLOYEES e 
+  JOIN DEPARTMENTS d  ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+  JOIN JOBS j ON e.JOB_ID = j.JOB_ID
+;
+--8. 각 사원의 이름과 그 사원의 상사 이름을 함께 조회하시오.
+-- 8. 106 rows
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , me.FIRST_NAME || ' ' || me.LAST_NAME AS MANAGER_NAME 
+  FROM EMPLOYEES e 
+  JOIN EMPLOYEES me ON e.MANAGER_ID = me.EMPLOYEE_ID
+;
+--9. 모든 사원의 이름, 급여, 직무명, 부서명, 도시명, 주소, 우편번호, 국가명, 대륙명을 조회하시오.
+-- 9. 106 rows
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , e.SALARY 
+     , j.JOB_TITLE 
+     , d.DEPARTMENT_NAME 
+     , l.CITY 
+     , l.STREET_ADDRESS 
+     , l.POSTAL_CODE 
+     , c.COUNTRY_NAME 
+     , r.REGION_NAME 
+  FROM EMPLOYEES e 
+  JOIN JOBS j ON e.JOB_ID = j.JOB_ID
+  JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+  JOIN COUNTRIES c ON l.COUNTRY_ID = c.COUNTRY_ID
+  JOIN REGIONS r ON c.REGION_ID = r.REGION_ID
+
+--10. 직무변경 이력이 있는 사원의 이름, 이전 직무명, 이전 부서명을 조회하시오.
+-- 10: 10 rows
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , j.JOB_TITLE 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+  JOIN JOB_HISTORY jh ON e.EMPLOYEE_ID = jh.EMPLOYEE_ID
+  JOIN JOBS j ON jh.JOB_ID = j.JOB_ID
+  JOIN DEPARTMENTS d ON jh.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
+--11. 직무변경 이력이 있는 사원의 이름, 현재 직무명, 현재 부서명을 조회하시오.
+-- 11: 7 rows
+SELECT DISTINCT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , j.JOB_TITLE 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+  JOIN JOB_HISTORY jh ON e.EMPLOYEE_ID = jh.EMPLOYEE_ID
+  JOIN JOBS j ON e.JOB_ID = j.JOB_ID
+  JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
+--12. 직무변경 이력이 있는 사원의 이름, 이전에 근무했던 부서의 번호, 이전에 근무했던 도시의 이름을 조회하시오.
+-- 12: 7 rows
+SELECT DISTINCT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+     , d.DEPARTMENT_ID
+     , l.CITY 
+  FROM EMPLOYEES e 
+  JOIN JOB_HISTORY jh ON e.EMPLOYEE_ID = jh.EMPLOYEE_ID
+  JOIN DEPARTMENTS d ON jh.DEPARTMENT_ID = d.DEPARTMENT_ID 
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+;
+--13. 'Tokyo'시에서 근무중인 사원의 이름을 조회하시오.
+-- 13: 0 rows
+SELECT e.FIRST_NAME || ' ' || e.LAST_NAME AS NAME 
+  FROM EMPLOYEES e 
+  JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+ WHERE l.CITY = 'Tokyo'
+;
+--14. 'Kuwait'국가에서 근무중인 사원의 직무명을 중복없이 조회하시오.
+-- 14: 0 rows
+SELECT DISTINCT j.JOB_TITLE  
+  FROM EMPLOYEES e 
+  JOIN DEPARTMENTS d ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+  JOIN LOCATIONS l ON d.LOCATION_ID = l.LOCATION_ID
+  JOIN COUNTRIES c ON l.COUNTRY_ID = c.COUNTRY_ID 
+  JOIN JOBS j ON e.JOB_ID = j.JOB_ID 
+ WHERE c.COUNTRY_NAME  = 'Kuwait'
+;
