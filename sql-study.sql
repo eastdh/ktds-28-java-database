@@ -1,3 +1,304 @@
+-- RECURSIVE JOIN
+--  MENU 임시테이블 만들기
+WITH MENU AS (
+    SELECT '1000' AS MENU_ID
+         , '브랜드패션' AS MENU_NAME
+         , NULL AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2000' AS MENU_ID
+         , '패션의류/잡화/뷰티' AS MENU_NAME
+         , NULL AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1100' AS MENU_ID
+         , '브랜드의류' AS MENU_NAME
+         , '1000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1200' AS MENU_ID
+         , '브랜드잡화' AS MENU_NAME
+         , '1000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1300' AS MENU_ID
+         , '스포츠브랜드' AS MENU_NAME
+         , '1000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2100' AS MENU_ID
+         , '패션의류' AS MENU_NAME
+         , '2000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2200' AS MENU_ID
+         , '잡화' AS MENU_NAME
+         , '2000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2300' AS MENU_ID
+         , '뷰티' AS MENU_NAME
+         , '2000' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1101' AS MENU_ID
+         , '브랜드 여성의류' AS MENU_NAME
+         , '1100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1102' AS MENU_ID
+         , '브랜드 남성의류' AS MENU_NAME
+         , '1100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1103' AS MENU_ID
+         , '브랜드 캐쥬얼의류' AS MENU_NAME
+         , '1100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1201' AS MENU_ID
+         , '브랜드 잡화' AS MENU_NAME
+         , '1200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1202' AS MENU_ID
+         , '브랜드 쥬얼리/시계' AS MENU_NAME
+         , '1200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1203' AS MENU_ID
+         , '수입명품' AS MENU_NAME
+         , '1200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1301' AS MENU_ID
+         , '브랜드 아웃도어' AS MENU_NAME
+         , '1300' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '1302' AS MENU_ID
+         , '브랜드 스포츠패션' AS MENU_NAME
+         , '1300' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2101' AS MENU_ID
+         , '여성의류' AS MENU_NAME
+         , '2100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2102' AS MENU_ID
+         , '남성의류' AS MENU_NAME
+         , '2100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2103' AS MENU_ID
+         , '언더웨어' AS MENU_NAME
+         , '2100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2104' AS MENU_ID
+         , '유아동의류' AS MENU_NAME
+         , '2100' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2201' AS MENU_ID
+         , '신발' AS MENU_NAME
+         , '2200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2202' AS MENU_ID
+         , '가방/잡화' AS MENU_NAME
+         , '2200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2203' AS MENU_ID
+         , '유아동 신발/잡화' AS MENU_NAME
+         , '2200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2203' AS MENU_ID
+         , '쥬얼리/시계' AS MENU_NAME
+         , '2200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2204' AS MENU_ID
+         , '수입명품' AS MENU_NAME
+         , '2200' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2301' AS MENU_ID
+         , '화장품/향수' AS MENU_NAME
+         , '2300' AS TOP_MENU_ID
+      FROM DUAL
+     UNION 
+    SELECT '2302' AS MENU_ID
+         , '바디/헤어' AS MENU_NAME
+         , '2300' AS TOP_MENU_ID
+      FROM DUAL
+)
+-- 재귀 조인을 이용한 계층 데이터 조회
+-- 브랜드 패션(1000) 메뉴의 모든 하위 메뉴를 조회한다.
+-- SELECT MENU_ID
+--      , MENU_NAME
+--      , TOP_MENU_ID
+--      , LEVEL
+--   FROM MENU 
+--  START WITH TOP_MENU_ID IS NULL
+--CONNECT BY PRIOR MENU_ID = TOP_MENU_ID
+--;
+-- 수입명품(1203) 메뉴의 모든 상위 메뉴를 조회한다.
+ SELECT MENU_ID
+      , MENU_NAME
+      , TOP_MENU_ID
+      , LEVEL
+   FROM MENU 
+  START WITH MENU_ID = 1203
+--CONNECT BY PRIOR TOP_MENU_ID = MENU_ID
+CONNECT BY MENU_ID = PRIOR TOP_MENU_ID
+;
+
+-- 재귀 참조를 이용한 JOIN
+-- 브랜드패션(1000) 메뉴의 하위 메뉴를 조회한다. (1100, 1200, 1300)
+SELECT MENU_ID
+     , MENU_NAME
+     , TOP_MENU_ID
+  FROM MENU
+ WHERE TOP_MENU_ID = 1000
+;
+-- 패션의류/잡화/뷰티(2000) 메뉴의 하위 메뉴를 조회한다. (2100, 2200, 2300)
+SELECT MENU_ID
+     , MENU_NAME
+     , TOP_MENU_ID
+  FROM MENU
+ WHERE TOP_MENU_ID = 2000
+;
+-- 브랜드잡화(1200) 메뉴의 하위 메뉴를 조회한다. (1201, 1202, 1203)
+SELECT MENU_ID
+     , MENU_NAME
+     , TOP_MENU_ID
+  FROM MENU
+ WHERE TOP_MENU_ID = 1200
+;
+-- 유아동 신발/잡화(2203) 메뉴의 하위 메뉴를 조회한다.
+SELECT MENU_ID
+     , MENU_NAME
+     , TOP_MENU_ID
+  FROM MENU
+ WHERE TOP_MENU_ID = 2203
+;
+-- 브랜드 캐쥬얼의류(1103) 메뉴의 부모 메뉴의 이름을 조회한다. (브랜드의류(1100))
+SELECT MENU_NAME 
+  FROM MENU
+ WHERE MENU_ID = (SELECT TOP_MENU_ID
+                  FROM MENU
+                 WHERE MENU_ID = 1103)
+;
+-- 브랜드의류(1100) 메뉴의 부모 메뉴의 이름을 조회한다. (브랜드패션(1000))
+SELECT MENU_NAME 
+  FROM MENU
+ WHERE MENU_ID = (SELECT TOP_MENU_ID
+                  FROM MENU
+                 WHERE MENU_ID = 1100)
+;
+-- 브랜드패션(1000) 메뉴의 부모 메뉴의 이름을 조회한다.
+SELECT MENU_NAME 
+  FROM MENU
+ WHERE MENU_ID = (SELECT TOP_MENU_ID
+                  FROM MENU
+                 WHERE MENU_ID = 1000)
+;
+
+-- 100번 사원의 모든 부하 직원을 조회한다.
+ SELECT EMPLOYEE_ID
+      , FIRST_NAME || ' ' || LAST_NAME AS NAME
+      , MANAGER_ID
+      , LEVEL
+   FROM EMPLOYEES
+  START WITH EMPLOYEE_ID = 100
+CONNECT BY PRIOR EMPLOYEE_ID = MANAGER_ID
+;
+
+-- 테이블 조인 + 조건
+
+
+-- 108번 사원의 이름과 부서명을 조회한다.
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.EMPLOYEE_ID = 108
+   AND e.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
+
+-- 직무의 아이디가 AD_VP 이거나 부서의 번호가 70번인 사원의 이름, 직무명, 부서번호를 조회한다.
+SELECT e.FIRST_NAME 
+     , j.JOB_TITLE 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ WHERE j.JOB_ID = 'AD_VP'
+    OR d.DEPARTMENT_ID = 70
+;
+
+-- 직무명이 'Administration Vice President' 이거나 부서의 번호가 70버ㄴ인 사원의 이름, 부서명 조회
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID 
+ WHERE D.DEPARTMENT_ID = 70
+    OR E.JOB_ID = (SELECT JOB_ID 
+                     FROM JOBS
+                    WHERE JOB_TITLE = 'Administration Vice President')
+;
+
+-- Europe에 근무중인 모든 사원의 이름과 근무중인 도시를 조회한다.
+SELECT e.FIRST_NAME 
+     , l.CITY 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN LOCATIONS l 
+    ON d.LOCATION_ID = l.LOCATION_ID
+ WHERE l.COUNTRY_ID IN (SELECT c.COUNTRY_ID 
+                           FROM COUNTRIES c 
+                          WHERE c.REGION_ID = (SELECT r.REGION_ID
+                                                  FROM REGIONS r 
+                                                 WHERE r.REGION_NAME = 'Europe'))
+;
+
+-- 직무명 별 사원의 수를 조회한다.
+SELECT j.JOB_TITLE 
+     , COUNT(e.EMPLOYEE_ID )
+  FROM EMPLOYEES e 
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ GROUP BY j.JOB_TITLE 
+;
+-- 직무명 별 사원의 수를 조회한다. 직무명으로 오름차순
+SELECT j.JOB_TITLE 
+     , COUNT(e.EMPLOYEE_ID )
+  FROM EMPLOYEES e 
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ GROUP BY j.JOB_TITLE
+ ORDER BY j.JOB_TITLE ASC
+;
+-- 직무명 별 사원의 수를 조회한다. 사원의 수로 내림차순
+SELECT j.JOB_TITLE 
+     , COUNT(e.EMPLOYEE_ID ) AS emp_cnt
+  FROM EMPLOYEES e 
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ GROUP BY j.JOB_TITLE 
+ ORDER BY EMP_CNT  DESC
+;
+ 
+---------------------------------------------------------------------------
+
 -- 평균 급여보다 많은 급여를 받는 사원의 이름, 성, 급여를 조회한다.
 ---- 1. 특정할 수 없는 데이터가 무엇인가?
 ------ ==> 평균 급여 = 6461.831775700934579439252336448598130841
