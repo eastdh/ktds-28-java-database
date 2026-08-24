@@ -1,3 +1,155 @@
+
+-- 70, 80, 90, 100번 부서에서 근무중인 사원의 이름과 부서명을 조회한다.
+---- 기존 방법 ==> 의도한 대로 작동하지만 성능이 좋지 않을 수 있다.
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ WHERE d.DEPARTMENT_ID IN (70, 80, 90, 100)
+ ORDER BY d.DEPARTMENT_ID  
+;
+
+---- INLINE VIEW를 사용한 방법
+SELECT e.FIRST_NAME 
+     , d.DEPARTMENT_NAME 
+  FROM (SELECT FIRST_NAME 
+             , DEPARTMENT_ID 
+          FROM EMPLOYEES
+         WHERE DEPARTMENT_ID IN (70, 80, 90, 100)) e
+ INNER JOIN (SELECT DEPARTMENT_ID 
+                  , DEPARTMENT_NAME 
+               FROM DEPARTMENTS
+              WHERE DEPARTMENT_ID IN (70, 80, 90, 100)) d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ ORDER BY d.DEPARTMENT_ID  
+;
+
+-- 입사 연도별 최고 급여를 조회한다.
+-- 기존 방법 ==> GROUP BY에서 성능이 하락한다.
+SELECT TO_CHAR(HIRE_DATE, 'YYYY')
+     , MAX(SALARY)
+  FROM EMPLOYEES
+ GROUP BY TO_CHAR(HIRE_DATE, 'YYYY') 
+;
+
+-- INLINE VIEW 활용
+SELECT HIRE_YEAR 
+     , MAX(SALARY )
+  FROM (SELECT SALARY
+             , TO_CHAR(HIRE_DATE, 'YYYY') AS HIRE_YEAR
+          FROM EMPLOYEES)
+ GROUP BY HIRE_YEAR
+ ORDER BY HIRE_YEAR
+;
+
+-- 입사 연도별 사원의 수를 조회한다.
+-- 기존 방법
+SELECT TO_CHAR(HIRE_DATE, 'YYYY') 
+     , COUNT(EMPLOYEE_ID )
+  FROM EMPLOYEES 
+ GROUP BY TO_CHAR(HIRE_DATE, 'YYYY') 
+ ORDER BY TO_CHAR(HIRE_DATE, 'YYYY') 
+;
+-- INLINE VIEW 활용
+SELECT HIRE_YEAR 
+     , COUNT(EMPLOYEE_ID )
+  FROM (SELECT TO_CHAR(HIRE_DATE, 'YYYY') AS HIRE_YEAR
+             , EMPLOYEE_ID
+          FROM EMPLOYEES)
+ GROUP BY HIRE_YEAR 
+ ORDER BY HIRE_YEAR 
+;
+
+-- 사원 이름의 첫 번째 글자만 가져온다. (NONE ANSI)
+SELECT FIRST_NAME 
+     , SUBSTR(FIRST_NAME , 1, 1)
+  FROM EMPLOYEES
+;
+
+-- 사원 이름의 첫 번째 글자별 급여 합계를 조회한다.
+SELECT SUBSTR(FIRST_NAME , 1, 1)
+     , SUM(SALARY)
+  FROM EMPLOYEES
+ GROUP BY SUBSTR(FIRST_NAME , 1, 1)
+ ORDER BY SUBSTR(FIRST_NAME , 1, 1)
+;
+-- INLINE VIEW 활용
+SELECT FIRST_LETTER 
+     , SUM(SALARY)
+  FROM (SELECT SUBSTR(FIRST_NAME , 1, 1) AS FIRST_LETTER
+             , SALARY
+          FROM EMPLOYEES)  
+ GROUP BY FIRST_LETTER 
+ ORDER BY FIRST_LETTER 
+;
+
+-- SALARY 별로 ROW 순위 구하기 (가장 높은 SALARY가 1등)
+---- RANK() OVER() ⇒ ANSI
+---    - 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 —> 1 1 1 4 4 6 6 6 9
+SELECT SALARY
+     , RANK() OVER(ORDER BY SALARY DESC) AS RANK
+  FROM EMPLOYEES
+;
+  
+---- DENSE_RANK() OVER() ⇒ ANSI
+---    - 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 —> 1 1 1 2 2 3 3 3 4
+SELECT SALARY
+     , DENSE_RANK() OVER(ORDER BY SALARY DESC) AS RANK
+  FROM EMPLOYEES
+;
+
+---- ROW_NUMBER() OVER() ⇒ ANSI
+---    - 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 —> 1 2 3 4 5 6 7 8 9
+SELECT SALARY
+     , ROW_NUMBER() OVER(ORDER BY SALARY DESC) AS RANK
+  FROM EMPLOYEES
+;
+---- ROWNUM ⇒ NONE ANSI
+---    - 공동 1등 3명, 2등 2명, 3등 3명, 4등 1명 —> 1 2 3 4 5 6 7 8 9
+
+
+-- 페이지네이션
+-- [DENSE_]RANK() OVER(), ROW_NUMBER() OVER() 없이 조회.
+-- 사원 중 작은 급여를 받는 10명을 조회한다.
+SELECT FIRST_NAME
+     , SALARY
+  FROM (SELECT FIRST_NAME
+             , SALARY
+          FROM EMPLOYEES
+         ORDER BY SALARY ASC)
+ WHERE ROWNUM <= 10
+;
+-- 사원 중 많은 급여를 받는 10명을 조회한다.
+SELECT FIRST_NAME
+     , SALARY
+  FROM (SELECT FIRST_NAME
+             , SALARY
+          FROM EMPLOYEES
+         ORDER BY SALARY DESC)
+ WHERE ROWNUM <= 10
+;
+-- 많은 급여를 받는 중 5 ~ 9 번째 사원을 조회한다.   
+SELECT FIRST_NAME
+     , SALARY
+  FROM (SELECT FIRST_NAME
+             , SALARY
+          FROM EMPLOYEES
+         ORDER BY SALARY DESC)
+ WHERE ROWNUM >= 5
+   AND ROWNUM <= 9
+;
+
+
+
+-- VIEW 확인
+SELECT *
+  FROM EMP_DETAILS_VIEW edv 
+ ORDER BY edv.EMPLOYEE_ID 
+;
+
+--------------------------------------------------------------------------------------
+
 -- RECURSIVE JOIN
 --  MENU 임시테이블 만들기
 WITH MENU AS (
