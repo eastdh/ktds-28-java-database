@@ -1,35 +1,240 @@
 -- 1. 모든 사원의 모든 정보를 조회한다.
+-- 1: 107 rows
+SELECT EMPLOYEE_ID 
+      , FIRST_NAME
+      , LAST_NAME
+      , EMAIL
+      , PHONE_NUMBER
+      , HIRE_DATE
+      , JOB_ID
+      , SALARY 
+      , COMMISSION_PCT 
+      , MANAGER_ID 
+      , DEPARTMENT_ID 
+  FROM EMPLOYEES
+;
 
 -- 2. 부서가 없는 사원의 모든 정보를 조회한다.
+-- 2: 1 row
+SELECT EMPLOYEE_ID 
+      , FIRST_NAME
+      , LAST_NAME
+      , EMAIL
+      , PHONE_NUMBER
+      , HIRE_DATE
+      , JOB_ID
+      , SALARY 
+      , COMMISSION_PCT 
+      , MANAGER_ID 
+      , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID IS NULL
+;
 
 -- 3. 직무가 없는 사원의 모든 정보를 조회한다.
-
+-- 3: 0 row
+SELECT EMPLOYEE_ID 
+      , FIRST_NAME
+      , LAST_NAME
+      , EMAIL
+      , PHONE_NUMBER
+      , HIRE_DATE
+      , JOB_ID
+      , SALARY 
+      , COMMISSION_PCT 
+      , MANAGER_ID 
+      , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE JOB_ID IS NULL
+;
 -- 4. 부서와 직무가 모두 있는 사원의 모든 정보를 조회한다.
-
+-- 4: 106 rows
+SELECT EMPLOYEE_ID 
+      , FIRST_NAME
+      , LAST_NAME
+      , EMAIL
+      , PHONE_NUMBER
+      , HIRE_DATE
+      , JOB_ID
+      , SALARY 
+      , COMMISSION_PCT 
+      , MANAGER_ID 
+      , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID IS NOT NULL
+   AND JOB_ID IS NOT NULL
+;
 -- 5. 부서장이 없는 모든 부서의 모든 정보를 조회한다.
-
+-- 5: 16 rows
+SELECT DEPARTMENT_ID 
+      , DEPARTMENT_NAME
+      , MANAGER_ID 
+      , LOCATION_ID 
+  FROM DEPARTMENTS
+ WHERE MANAGER_ID IS NULL
+;
 -- 6. 부서장이 있는 모든 부서의 모든 정보를 조회한다.
-
+-- 6: 11 rows
+SELECT DEPARTMENT_ID 
+      , DEPARTMENT_NAME
+      , MANAGER_ID 
+      , LOCATION_ID 
+  FROM DEPARTMENTS
+ WHERE MANAGER_ID IS NOT NULL
+;
 -- 7. 부서장의 모든 사원 정보를 조회한다.
-
+-- 7: 11 rows
+SELECT EMPLOYEE_ID 
+      , FIRST_NAME
+      , LAST_NAME
+      , EMAIL
+      , PHONE_NUMBER
+      , HIRE_DATE
+      , JOB_ID
+      , SALARY 
+      , COMMISSION_PCT 
+      , MANAGER_ID 
+      , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID IN (SELECT MANAGER_ID 
+                         FROM DEPARTMENTS)
+;
 -- 8. 사원의 이름만 조회한다.
-
+-- 8: 107 rows
+SELECT FIRST_NAME
+  FROM EMPLOYEES 
+;
 -- 9. 사원의 이름이 7자리인 사원의 모든 정보를 조회한다.
+-- 9: 23 rows
+SELECT EMPLOYEE_ID 
+     , FIRST_NAME
+     , LAST_NAME
+     , EMAIL
+     , PHONE_NUMBER
+     , HIRE_DATE
+     , JOB_ID
+     , SALARY 
+     , COMMISSION_PCT 
+     , MANAGER_ID 
+     , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE FIRST_NAME IN (SELECT FIRST_NAME
+                       FROM (SELECT LENGTH(FIRST_NAME ) AS len
+                                  , FIRST_NAME   
+                               FROM EMPLOYEES)
+                      WHERE LEN = 7)
+;
 
 -- 10. 사원의 이메일이 6자리인 사원의 모든 정보를 조회한다.
+-- 10: 25 rows
+SELECT EMPLOYEE_ID 
+     , FIRST_NAME
+     , LAST_NAME
+     , EMAIL
+     , PHONE_NUMBER
+     , HIRE_DATE
+     , JOB_ID
+     , SALARY 
+     , COMMISSION_PCT 
+     , MANAGER_ID 
+     , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ WHERE EMAIL IN (SELECT EMAIL 
+                   FROM (SELECT LENGTH(EMAIL) AS len
+                              , EMAIL   
+                           FROM EMPLOYEES)
+                  WHERE LEN = 6)
+;
 
 -- 11. 모든 지역의 모든 정보를 조회한다.
-
+-- 11: 23 rows
+SELECT LOCATION_ID 
+     , STREET_ADDRESS 
+     , POSTAL_CODE 
+     , CITY 
+     , STATE_PROVINCE 
+     , COUNTRY_ID 
+  FROM LOCATIONS
+;
 -- 12. 지역이 없는 모든 부서의 정보를 조회한다.
-
+-- 12: 0 row
+SELECT DEPARTMENT_ID 
+      , DEPARTMENT_NAME
+      , MANAGER_ID 
+      , LOCATION_ID 
+  FROM DEPARTMENTS
+ WHERE LOCATION_ID IS NULL
+;
 -- 13. 지역이 있는 모든 부서의 정보와 도시 정보를 조회한다.
-
+-- 13: 27 rows
+SELECT d.DEPARTMENT_ID 
+     , d.DEPARTMENT_NAME
+     , d.MANAGER_ID 
+     , d.LOCATION_ID
+     , l.CITY
+  FROM DEPARTMENTS d
+ INNER JOIN LOCATIONS l 
+    ON d.LOCATION_ID = l.LOCATION_ID
+;
 -- 14. 모든 사원의 모든 정보와 부서명을 조회한다.
-
+-- 14: 107 rows
+SELECT e.EMPLOYEE_ID 
+     , e.FIRST_NAME
+     , e.LAST_NAME
+     , e.EMAIL
+     , e.PHONE_NUMBER
+     , e.HIRE_DATE
+     , e.JOB_ID
+     , e.SALARY 
+     , e.COMMISSION_PCT 
+     , e.MANAGER_ID 
+     , e.DEPARTMENT_ID
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e
+  LEFT JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
 -- 15. 111번 사원의 모든 정보와 부서명을 조회한다.
-
+-- 15: 1 row
+SELECT e.EMPLOYEE_ID 
+     , e.FIRST_NAME
+     , e.LAST_NAME
+     , e.EMAIL
+     , e.PHONE_NUMBER
+     , e.HIRE_DATE
+     , e.JOB_ID
+     , e.SALARY 
+     , e.COMMISSION_PCT 
+     , e.MANAGER_ID 
+     , e.DEPARTMENT_ID
+     , d.DEPARTMENT_NAME 
+  FROM EMPLOYEES e
+ INNER JOIN DEPARTMENTS d 
+    ON e.EMPLOYEE_ID = 111
+   AND e.DEPARTMENT_ID = d.DEPARTMENT_ID
+;
 -- 16. 115번의 사원의 모든 정보와 부서명, 직무명을 조회한다.
-
+-- 16: 1 row
+SELECT e.EMPLOYEE_ID 
+     , e.FIRST_NAME
+     , e.LAST_NAME
+     , e.EMAIL
+     , e.PHONE_NUMBER
+     , e.HIRE_DATE
+     , e.JOB_ID
+     , e.SALARY 
+     , e.COMMISSION_PCT 
+     , e.MANAGER_ID 
+     , e.DEPARTMENT_ID
+     , d.DEPARTMENT_NAME 
+     , j.JOB_TITLE
+  FROM EMPLOYEES e
+ INNER JOIN DEPARTMENTS d 
+    ON e.EMPLOYEE_ID = 115
+   AND e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+;
 -- 17. 100번 사원의 모든 정보와 부서명, 직무명, 도시명을 조회한다.
 
 -- 18. 부서아이디별 사원의 평균급여를 조회한다.
