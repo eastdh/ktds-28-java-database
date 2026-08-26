@@ -419,22 +419,119 @@ SELECT CITY
 ;
 
 -- 34. 모든 사원의 정보를 급여로 오름차순 정렬하여 조회한다.
+-- 34: 107 rows
+SELECT EMPLOYEE_ID 
+     , FIRST_NAME
+     , LAST_NAME
+     , EMAIL
+     , PHONE_NUMBER
+     , HIRE_DATE
+     , JOB_ID
+     , SALARY 
+     , COMMISSION_PCT 
+     , MANAGER_ID 
+     , DEPARTMENT_ID 
+  FROM EMPLOYEES
+ ORDER BY SALARY ASC
+;
 
 -- 35. 부서명별 평균급여를 부서명으로 내림차순 정렬하여 조회한다.
+-- 35: 11 rows
+SELECT d.DEPARTMENT_NAME 
+     , AVG(e.SALARY )
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ GROUP BY d.DEPARTMENT_NAME 
+ ORDER BY d.DEPARTMENT_NAME DESC
+;
 
 -- 36. 부서명별 최고급여를 최고급여로 오름차순 정렬하여 조회한다.
+-- 36: 11 rows
+SELECT d.DEPARTMENT_NAME 
+     , MAX(e.SALARY ) max_sal 
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ GROUP BY d.DEPARTMENT_NAME 
+ ORDER BY max_sal DESC
+;
+
 
 -- 37. 부서명이 가장 긴 부서에서 근무중인 사원의 모든 정보를 조회한다.
+-- 37: 0 row
+SELECT *
+  FROM EMPLOYEES
+ WHERE DEPARTMENT_ID = (SELECT DEPARTMENT_ID 
+                          FROM (SELECT DEPARTMENT_ID 
+                                     , ROW_NUMBER() OVER(ORDER BY LEN DESC) rnk
+                                  FROM (SELECT DEPARTMENT_ID 
+                                             , LENGTH(DEPARTMENT_NAME ) len
+                                          FROM DEPARTMENTS))
+                         WHERE RNK = 1)
+;
 
 -- 38. 도시 별 사원의 수를 도시로 오름차순 정렬하여 조회한다.
+-- 38: 7 rows
+SELECT l.CITY
+     , COUNT(e.EMPLOYEE_ID )
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN LOCATIONS l 
+    ON d.LOCATION_ID = l.LOCATION_ID
+ GROUP BY l.CITY 
+ ORDER BY l.CITY ASC
+;
 
 -- 39. 모든 사원의 사원번호, 이름, 성, 급여, 커미션을 포함한 급여 정보를 조회한다.
+-- 39: 107 rows
+SELECT EMPLOYEE_ID 
+     , FIRST_NAME 
+     , LAST_NAME 
+     , SALARY 
+     , SALARY + COALESCE(COMMISSION_PCT, 0) * SALARY AS TOTAL_SALARY
+  FROM EMPLOYEES 
+;
 
 -- 40. 매년 급여의 10%의 상여금을 받는다고 했을 때, 사원별로 현재까지 받은 상여금의 합과 사원번호, 급여를 조회한다.
+-- 40: 107 rows
+SELECT e.EMPLOYEE_ID
+     , e.SALARY
+     , TRUNC(e.SALARY * 0.1) * y.WORKED_YEARS AS BONUS
+  FROM EMPLOYEES e 
+ INNER JOIN (SELECT EMPLOYEE_ID 
+                  , TRUNC((TRUNC(SYSDATE) - TRUNC(HIRE_DATE)) / 365) AS worked_years
+               FROM EMPLOYEES) y
+    ON e.EMPLOYEE_ID  = y.EMPLOYEE_ID
+ ORDER BY e.EMPLOYEE_ID 
+;
 
 -- 41. 직무가 변경되었던 사원들의 모든 정보를 조회한다.
+-- 41: 7 rows
+SELECT *
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID IN (SELECT DISTINCT EMPLOYEE_ID 
+                         FROM JOB_HISTORY)
+;
 
 -- 42. 모든 사원들의 현재 직무명과 과거의 직무명을 조회한다. 만약 직무가 한번도 변경되지 않았다면, 과거의 직무명은 '없음' 으로 조회한다.
+-- 42: 110 rows
+SELECT now.EMPLOYEE_ID 
+     , now.JOB_TITLE AS now_job
+     , COALESCE(old.JOB_TITLE, '없음') AS old_job
+  FROM (SELECT e.EMPLOYEE_ID 
+             , j.JOB_TITLE 
+          FROM EMPLOYEES e 
+         INNER JOIN JOBS j
+            ON e.JOB_ID = j.JOB_ID ) now 
+  LEFT JOIN (SELECT jh.EMPLOYEE_ID 
+                  , j.JOB_TITLE 
+               FROM JOB_HISTORY jh
+              INNER JOIN JOBS j
+                 ON jh.JOB_ID = j.JOB_ID) old 
+    ON now.EMPLOYEE_ID = old.EMPLOYEE_ID
+;
 
 -- 43. 직무가 변경될 때마다 급여가 15%씩 감소한다고 했을 때, 직무가 변경된 사원들의 감소된 급여를 조회한다.
 
