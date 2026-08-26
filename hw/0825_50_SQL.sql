@@ -236,38 +236,187 @@ SELECT e.EMPLOYEE_ID
     ON e.JOB_ID = j.JOB_ID
 ;
 -- 17. 100번 사원의 모든 정보와 부서명, 직무명, 도시명을 조회한다.
-
+-- 17: 1 row
+SELECT e.EMPLOYEE_ID 
+     , e.FIRST_NAME
+     , e.LAST_NAME
+     , e.EMAIL
+     , e.PHONE_NUMBER
+     , e.HIRE_DATE
+     , e.JOB_ID
+     , e.SALARY 
+     , e.COMMISSION_PCT 
+     , e.MANAGER_ID 
+     , e.DEPARTMENT_ID
+     , d.DEPARTMENT_NAME 
+     , j.JOB_TITLE
+     , l.CITY
+  FROM EMPLOYEES e
+ INNER JOIN DEPARTMENTS d 
+    ON e.EMPLOYEE_ID = 100
+   AND e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ INNER JOIN LOCATIONS l 
+    ON d.LOCATION_ID = l.LOCATION_ID
+;
 -- 18. 부서아이디별 사원의 평균급여를 조회한다.
-
+-- 18: 11 rows
+SELECT DEPARTMENT_ID 
+     , AVG(SALARY )
+  FROM EMPLOYEES  
+ GROUP BY DEPARTMENT_ID
+ ORDER BY DEPARTMENT_ID 
+;
 -- 19. 직무아이디별 사원의 최고급여를 조회한다.
+-- 19: 19 rows
+SELECT JOB_ID
+     , MAX(SALARY)
+  FROM EMPLOYEES
+ GROUP BY JOB_ID 
+ ORDER BY JOB_ID 
+;
+
 
 -- 20. 부서명별 사원의 수를 조회한다.
+-- 20: 11 rows
+SELECT d.DEPARTMENT_NAME 
+     , COUNT(e.EMPLOYEE_ID )
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ GROUP BY d.DEPARTMENT_NAME 
+;
 
 -- 21. 직무명별 사원의 평균급여를 조회한다.
+-- 21: 19 rows
+SELECT j.JOB_TITLE
+     , AVG(e.SALARY)
+  FROM EMPLOYEES e 
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ GROUP BY j.JOB_TITLE 
+;
 
 -- 22. 부서명, 직무명별 사원의 수와 평균급여를 조회한다.
+-- 22: 19 rows
+SELECT d.DEPARTMENT_NAME 
+     , j.JOB_TITLE 
+     , COUNT(e.EMPLOYEE_ID )
+     , AVG(e.SALARY )
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ INNER JOIN JOBS j 
+    ON e.JOB_ID = j.JOB_ID
+ GROUP BY d.DEPARTMENT_NAME , j.JOB_TITLE 
+;
 
 -- 23. 커미션을 안받는 사원의 모든 정보를 조회한다.
+-- 23: 72 rows
+SELECT *
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT IS NULL
+;
 
 -- 24. 커미션을 받는 사원의 부서아이디를 중복없이 조회한다.
-
+-- 24: 2 rows
+SELECT DISTINCT DEPARTMENT_ID
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT IS NOT NULL
+;
 -- 25. 커미션을 받는 사원의 직무아이디를 중복없이 조회한다.
+-- 25: 2 rows
+SELECT DISTINCT JOB_ID
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT IS NOT NULL
+;
 
 -- 26. 사원이 있는 부서의 지역아이디를 조회한다.
+-- 26: 7 rows
+SELECT DISTINCT LOCATION_ID 
+  FROM DEPARTMENTS
+ WHERE DEPARTMENT_ID IN (SELECT DISTINCT DEPARTMENT_ID  
+                           FROM EMPLOYEES
+                          WHERE DEPARTMENT_ID IS NOT NULL)
+;
 
 -- 27. 사원이 없는 부서의 부서명을 조회한다.
+-- 27: 16 rows
+SELECT DEPARTMENT_NAME  
+  FROM DEPARTMENTS
+ WHERE DEPARTMENT_ID NOT IN (SELECT DISTINCT DEPARTMENT_ID  
+                               FROM EMPLOYEES
+                              WHERE DEPARTMENT_ID IS NOT NULL)
+;
 
 -- 28. 도시별 부서의 수를 조회한다. (부서가 없으면 부서의 수는 0으로 조회한다.)
+-- 28: 23 rows
+SELECT l.CITY
+     , COUNT(d.DEPARTMENT_ID)
+  FROM LOCATIONS l 
+  LEFT JOIN DEPARTMENTS d 
+    ON l.LOCATION_ID = d.LOCATION_ID
+ GROUP BY l.CITY 
+;
 
 -- 29. 도시별 사원의 평균급여를 조회한다. (사원이 없으면 평균급여는 0으로 조회한다.)
+-- 29: 23 rows
+SELECT l.CITY 
+     , COALESCE(AVG(e.SALARY ), 0)
+  FROM EMPLOYEES e 
+ INNER JOIN DEPARTMENTS d 
+    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+ RIGHT JOIN LOCATIONS l 
+    ON d.LOCATION_ID = l.LOCATION_ID
+ GROUP BY l.CITY 
+;
 
 -- 30. Seattle의 부서 아이디를 조회한다.
+-- 30: 21 rows
+SELECT DEPARTMENT_ID
+  FROM DEPARTMENTS
+ WHERE LOCATION_ID = (SELECT LOCATION_ID
+                        FROM LOCATIONS 
+                       WHERE CITY = 'Seattle')
+;
 
 -- 31. Seattle에서 근무중인 사원의 모든 직무명을 중복없이 조회한다.
+-- 31: 9 rows
+SELECT JOB_TITLE
+  FROM JOBS 
+ WHERE JOB_ID IN (SELECT DISTINCT JOB_ID
+                    FROM EMPLOYEES
+                   WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+                                             FROM DEPARTMENTS
+                                            WHERE LOCATION_ID = (SELECT LOCATION_ID
+                                                                   FROM LOCATIONS 
+                                                                  WHERE CITY = 'Seattle')))
+;
 
 -- 32. 사원이 한명도 없는 도시를 조회한다.
+SELECT CITY
+  FROM (SELECT l.CITY 
+             , COUNT(e.EMPLOYEE_ID ) e_cnt
+          FROM EMPLOYEES e 
+         INNER JOIN DEPARTMENTS d 
+            ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
+         RIGHT JOIN LOCATIONS l 
+            ON d.LOCATION_ID = l.LOCATION_ID
+         GROUP BY l.CITY) 
+ WHERE E_CNT = 0
+;
+    
 
 -- 33. 사원이 한명이라도 있는 도시를 조회한다.
+-- 33: 7 rows
+SELECT CITY
+  FROM LOCATIONS
+ WHERE LOCATION_ID IN (SELECT DISTINCT LOCATION_ID 
+                         FROM DEPARTMENTS
+                        WHERE DEPARTMENT_ID IN (SELECT DISTINCT DEPARTMENT_ID 
+                                                  FROM EMPLOYEES))
+;
 
 -- 34. 모든 사원의 정보를 급여로 오름차순 정렬하여 조회한다.
 

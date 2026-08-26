@@ -1,4 +1,209 @@
 
+-- UNION
+-- UNION 규칙
+-- 집합간의 컬럼 타입이 일치해야 한다.
+SELECT 1 AS NUM
+     , 'A' AS STR
+  FROM DUAL
+ UNION
+SELECT 2 
+     , 'B' 
+  FROM DUAL
+;
+
+SELECT 1 AS NUM
+  FROM DUAL
+ UNION ALL
+SELECT 2
+  FROM DUAL
+ UNION ALL
+SELECT NUM2
+  FROM (SELECT -1 AS num2
+          FROM DUAL
+         UNION ALL
+        SELECT 0 AS nUM2
+          FROM DUAL
+         UNION ALL
+        SELECT -7 AS NUM2
+          FROM DUAL
+         ORDER BY NUM2 ASC)      
+;
+---------------------------------------------------------------------------
+
+-- CASE WHEN ELSE END
+WITH TEMP AS (
+    SELECT 'Y' AS FLAG
+      FROM DUAL
+     UNION
+    SELECT 'N'
+      FROM DUAL
+     UNION
+    SELECT 'R'
+      FROM DUAL
+     UNION
+    SELECT NULL
+      FROM DUAL
+)
+-- TEMP 테이블의 FLAG 컬럼의 값이 
+---- 'Y'면 'On', 
+---- 'R'이면 'Ready',
+---- NULL이라면 'Error',
+---- 모두 아니면 'Off'로 조회한다.
+SELECT FLAG
+     , CASE
+            WHEN FLAG = 'Y' THEN 
+                'On'  
+            WHEN FLAG = 'R' THEN 
+                'Ready'
+            WHEN FLAG IS NULL THEN
+                'Error'
+            ELSE
+                'Off'
+       END AS ON_OFF
+  FROM TEMP
+;
+SELECT FLAG
+     , CASE FLAG
+            WHEN 'Y' THEN 
+                'On'  
+            WHEN 'R' THEN 
+                'Ready'
+            WHEN NULL THEN  -- 불가능! ELSE로 빠짐
+                'Error'
+            ELSE
+                'Off'
+       END AS ON_OFF
+  FROM TEMP
+;
+     
+WITH NUMBERS AS (
+    SELECT 10 AS NUM
+      FROM DUAL
+     UNION
+    SELECT 20
+      FROM DUAL
+     UNION
+    SELECT 30
+      FROM DUAL
+)
+-- NUM 값이 30 이상이면 '3', 20 이상이면 '2', 10 이상이면 '1', 모두 아니면 '0'으로 조회한다.
+SELECT NUM
+     , CASE
+            WHEN NUM >= 30 THEN
+                '3'
+            WHEN NUM >= 20 THEN
+                '2'
+            WHEN NUM >= 10 THEN
+                '1'
+            ELSE 
+                '0'
+       END AS RESULT
+  FROM NUMBERS 
+; 
+
+-- 1. 사원의 사원 번호, 부서 번호, 근무 현황을 조회한다.
+---- 근무 현황: 근무하는 부서가 있으면 '근무 중', 아니면 '발령 대기'
+SELECT EMPLOYEE_ID 
+     , DEPARTMENT_ID 
+     , CASE
+         WHEN DEPARTMENT_ID IS NOT NULL THEN
+            '근무 중'
+         ELSE
+            '발령 대기'
+       END AS "근무 현황"
+  FROM EMPLOYEES 
+;
+
+-- 2. 사원의 사원 번호, 입사일, 입사 순서를 조회한다.
+---- 입사 순서: 가장 빨리 입사한 사원은 '원년 사원' 가장 늦게 입사한 사원은 '신규 사원', 아니면 '사원'
+WITH dates AS (
+    SELECT MAX(HIRE_DATE) AS newest
+         , MIN(HIRE_DATE) AS oldest
+      FROM EMPLOYEES
+)
+SELECT EMPLOYEE_ID 
+     , HIRE_DATE
+     , CASE
+            WHEN HIRE_DATE = dates.OLDEST  THEN
+                '원년 사원'
+            WHEN HIRE_DATE = dates.NEWEST  THEN
+                '신규 사원'
+            ELSE 
+                '사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+     , dates
+ ORDER BY EMPLOYEE_ID 
+;
+-- Scalar Query
+SELECT EMPLOYEE_ID 
+     , HIRE_DATE
+     , CASE
+            WHEN HIRE_DATE = (SELECT MIN(HIRE_DATE)
+                                FROM EMPLOYEES) THEN
+                '원년 사원'
+            WHEN HIRE_DATE = (SELECT MAX(HIRE_DATE)
+                                FROM EMPLOYEES)  THEN
+                '신규 사원'
+            ELSE 
+                '사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+ ORDER BY EMPLOYEE_ID 
+;
+
+WITH dates AS (
+    SELECT MAX(HIRE_DATE) AS newest
+         , MIN(HIRE_DATE) AS oldest
+      FROM EMPLOYEES
+)
+SELECT EMPLOYEE_ID 
+     , HIRE_DATE
+     , CASE
+            WHEN HIRE_DATE = (SELECT oldest
+                                FROM dates) THEN
+                '원년 사원'
+            WHEN HIRE_DATE = (SELECT newest
+                                FROM dates)  THEN
+                '신규 사원'
+            ELSE 
+                '사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+ ORDER BY EMPLOYEE_ID 
+;
+-- CROSS JOIN
+SELECT EMPLOYEE_ID 
+     , HIRE_DATE
+     , CASE
+            WHEN HIRE_DATE = OLDEST  THEN
+                '원년 사원'
+            WHEN HIRE_DATE = NEWEST  THEN
+                '신규 사원'
+            ELSE 
+                '사원'
+       END AS "입사 순서"
+  FROM EMPLOYEES
+ CROSS JOIN (SELECT MAX(HIRE_DATE) AS newest
+                  , MIN(HIRE_DATE) AS oldest
+               FROM EMPLOYEES)
+ ORDER BY EMPLOYEE_ID 
+;
+
+
+-- LPAD, RPAD
+SELECT 'A' AS LETTER
+     , 10 AS NUM
+     , LPAD('A', 10, '1')
+     , LPAD(10, 10, '-')
+     , RPAD('A', 10, '1')
+     , RPAD(10, 10, '-')
+     , LPAD('ABCDEFGHIJKLMNOP', 10, '!')
+     , RPAD('ABCDEFGHIJKLMNOP', 10, '!')
+  FROM DUAL
+;
+
+-------------------------------------------------------------
 -- OUTER JOIN 
 -- 모든 사원들의 이름과 부서의 이름을 조회한다.
 ---- 근무중인 부서가 없다면 null로 조회한다.

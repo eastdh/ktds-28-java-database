@@ -219,33 +219,62 @@ SELECT TO_CHAR(HIRE_DATE, 'YYYY')
   ;
 
 -- 37. MOD 함수를 통해 사원번호가 홀수면 남자, 짝수면 여자 로 구분해 조회한다. MOD(값, 나눌값)
-SELECT CASE WHEN MOD(EMPLOYEE_ID , 2) = 1 THEN 'MALE' ELSE 'FEMALE' END
+SELECT EMPLOYEE_ID 
+     , CASE 
+            WHEN MOD(EMPLOYEE_ID , 2) = 1 THEN 
+                'MALE' 
+            ELSE 
+                'FEMALE'
+       END AS sex
   FROM EMPLOYEES
-  ;
+;
 -- 38. 사원 모든 정보 중 이메일만 모두 소문자로 변경하여 조회한다.
 SELECT EMPLOYEE_ID
-      , FIRST_NAME 
-      , LAST_NAME 
-      , LOWER(EMAIL )
+     , FIRST_NAME 
+     , LAST_NAME 
+     , LOWER(EMAIL )
   FROM EMPLOYEES
   ;
 
 -- 39. 사원의 급여를 TRUNC(소수점 버림) 함수를 사용해 100 단위는 버린채 다음과 같이 조회한다. 
 --     예> 3700 -> 3000, 12700 -> 12000
 SELECT TRUNC(SALARY, -3)
+     , TRUNC(SALARY / 1000) * 1000
   FROM EMPLOYEES
-  ;
+;
 
 -- 40. 100단위를 버린 사원의 급여 별 사원의 수를 조회한다.
-SELECT TRUNC(SALARY, -3), COUNT(*)
-  FROM EMPLOYEES
- GROUP BY TRUNC(SALARY, -3)
-  ;
+SELECT TRUNC_SAL 
+     , COUNT(EMPLOYEE_ID )
+  FROM (SELECT TRUNC(SALARY, -3) AS trunc_sal
+             , EMPLOYEE_ID
+          FROM EMPLOYEES)
+ GROUP BY TRUNC_SAL 
+ ORDER BY TRUNC_SAL ASC
+;
 -- 41. 모든 사원들의 이름을 10자리로 맞추어 조회한다.
+SELECT LPAD(FIRST_NAME , 10, ' ')
+  FROM EMPLOYEES
+;
+  
 -- 42. 사원의 이름과 성을 이용해 EMAIL과 같은 값으로 만들어 조회한다.
--- 43. 모든 사원들의 이름을 10자리로 변환해 조회한다. 예> 이름 => "        이름"
--- 44. 모든 사원들의 성을 10자리로 변환해 조회한다. 예> 성 => "성         "
+------ FIRST_NAME의 첫 글자, LAST_NAME의 앞에서부터 최대 7글자, 모두 대문자
+SELECT UPPER(SUBSTR(FIRST_NAME, 0 ,1) || SUBSTR(LAST_NAME, 0, 7)) AS e_mail 
+     , EMAIL 
+  FROM EMPLOYEES
+;
 
+-- 43. 모든 사원들의 이름을 10자리로 변환해 조회한다. 예> 이름 => "        이름"
+SELECT FIRST_NAME
+     , LENGTH(FIRST_NAME) AS len
+     , LPAD(FIRST_NAME, 10, '_')
+     , LENGTH(LPAD(FIRST_NAME, 10, '_')) AS lpad_len
+  FROM EMPLOYEES
+;
+-- 44. 모든 사원들의 성을 10자리로 변환해 조회한다. 예> 성 => "성         "
+SELECT RPAD(LAST_NAME, 10, '_')
+  FROM EMPLOYEES
+;
 -- 45. 모든 사원들의 모든 정보를 조회한다. 
 --     단, 커미션을 받는 사원은 "커미션여부" 컬럼에 "Y"를, 아닌 경우 "N"으로 조회한다.
 SELECT EMPLOYEE_ID
@@ -253,7 +282,12 @@ SELECT EMPLOYEE_ID
       , LAST_NAME 
       , EMAIL
       , COMMISSION_PCT 
-      , CASE WHEN COMMISSION_PCT IS NOT NULL THEN 'Y' ELSE 'N' END AS "커미션 여부"
+      , CASE 
+            WHEN COMMISSION_PCT IS NOT NULL THEN 
+                'Y' 
+            ELSE 
+                'N' 
+        END AS "커미션 여부"
   FROM EMPLOYEES
 ;
 -- 46. 사원의 모든 정보를 조회한다. 
@@ -262,15 +296,21 @@ SELECT EMPLOYEE_ID
 --                9000 이하이면 "과장", 
 --                그 외에는 "임원" 으로 조회한다.
 SELECT EMPLOYEE_ID 
-      , FIRST_NAME 
-      , LAST_NAME 
-      , SALARY
-      , CASE WHEN SALARY <= 5000 THEN '사원'
-             WHEN SALARY <= 7000 THEN '대리'
-             WHEN SALARY <= 9000 THEN '과장'
-             ELSE '임원' END "직급"
+     , FIRST_NAME 
+     , LAST_NAME 
+     , SALARY
+     , CASE 
+           WHEN SALARY <= 5000 THEN 
+               '사원'
+           WHEN SALARY <= 7000 THEN 
+               '대리'
+           WHEN SALARY <= 9000 THEN 
+               '과장'
+           ELSE 
+               '임원' 
+       END AS "직급"
   FROM EMPLOYEES
-  ;
+;
 
 -- 47. 모든 사원들의 모든 정보를 급여 오름차순 정렬하여 조회한다.
 SELECT *
@@ -1855,6 +1895,37 @@ SELECT *
 196    Alana
 ...
 */
+SELECT EMPLOYEE_ID 
+     , FIRST_NAME 
+  FROM (SELECT EMPLOYEE_ID 
+             , FIRST_NAME 
+             , 0 AS r_num
+          FROM EMPLOYEES
+         WHERE EMPLOYEE_ID = 100
+         UNION
+        SELECT EMPLOYEE_ID 
+             , FIRST_NAME 
+             , r_num
+          FROM (SELECT EMPLOYEE_ID
+                     , FIRST_NAME
+                     , ROW_NUMBER() OVER(ORDER BY EMPLOYEE_ID DESC) AS r_num
+                  FROM EMPLOYEES
+                 WHERE EMPLOYEE_ID != 100))
+ ORDER BY R_NUM ASC
+;
+SELECT EMPLOYEE_ID
+     , FIRST_NAME
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID = 100
+ UNION ALL
+SELECT EMPLOYEE_ID
+     , FIRST_NAME
+  FROM (SELECT EMPLOYEE_ID
+             , FIRST_NAME
+          FROM EMPLOYEES 
+         WHERE EMPLOYEE_ID != 100
+         ORDER BY EMPLOYEE_ID DESC) 
+;
 
 -- 151. 모든 사원들의 이름과 부서번호, 부서명을 조회한다. 근무중인 부서가 없는 경우도 조회한다.
 SELECT e.FIRST_NAME
