@@ -395,6 +395,7 @@ SELECT JOB_TITLE
 ;
 
 -- 32. 사원이 한명도 없는 도시를 조회한다.
+-- 32: 16 rows
 SELECT CITY
   FROM (SELECT l.CITY 
              , COUNT(e.EMPLOYEE_ID ) e_cnt
