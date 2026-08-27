@@ -534,17 +534,87 @@ SELECT now.EMPLOYEE_ID
 ;
 
 -- 43. 직무가 변경될 때마다 급여가 15%씩 감소한다고 했을 때, 직무가 변경된 사원들의 감소된 급여를 조회한다.
-
+-- 43: 7 rows
+SELECT e.EMPLOYEE_ID 
+     , e.SALARY * POWER(0.85, c.C_CNT )
+  FROM EMPLOYEES e 
+ INNER JOIN (SELECT e.EMPLOYEE_ID 
+                  , COUNT(jh.JOB_ID) c_cnt
+               FROM EMPLOYEES e 
+              INNER JOIN JOB_HISTORY jh 
+                 ON e.EMPLOYEE_ID = jh.EMPLOYEE_ID
+              GROUP BY e.EMPLOYEE_ID) c 
+    ON e.EMPLOYEE_ID = c.EMPLOYEE_ID 
+;
 -- 44. 2003년에 입사한 사원은 몇 명인지 조회한다.
+-- 44: 1 row
+SELECT COUNT(EMPLOYEE_ID )
+  FROM EMPLOYEES
+ WHERE HIRE_DATE >= TO_DATE('2003-01-01', 'YYYY-MM-DD')
+   AND HIRE_DATE <= TO_DATE('2003-12-31', 'YYYY-MM-DD')
+;
 
 -- 45. 2002년부터 2006년까지 입사한 사원은 몇명인지 연도별로 조회한다.
+-- 45: 5 rows
+SELECT HIRE_YEAR 
+     , e_cnt
+  FROM (SELECT HIRE_YEAR
+             , COUNT(EMPLOYEE_ID ) e_cnt
+          FROM (SELECT EMPLOYEE_ID 
+                     , TO_CHAR(HIRE_DATE , 'YYYY') AS HIRE_YEAR
+                  FROM EMPLOYEES)
+         GROUP BY HIRE_YEAR)
+ WHERE HIRE_YEAR >= 2002
+   AND HIRE_YEAR <= 2006
+ ORDER BY HIRE_YEAR ASC
+;
+
 
 -- 46. 113번 사원의 상사의 모든 정보를 조회한다.
+-- 46: 1 row
+SELECT *
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID = (SELECT MANAGER_ID
+                        FROM EMPLOYEES
+                       WHERE EMPLOYEE_ID = 113)
+;
 
 -- 47. 100번 사원의 모든 부하직원을 계층조회한다.
+-- 47: 107 rows
+ SELECT LEVEL
+      , e.*
+   FROM EMPLOYEES e
+  START WITH EMPLOYEE_ID = 100
+CONNECT BY PRIOR EMPLOYEE_ID = MANAGER_ID
+;
 
 -- 48. 113번 사원의 모든 상사를 계층조회한다.
+-- 48: 4 rows
+ SELECT LEVEL
+      , e.*
+   FROM EMPLOYEES e
+  START WITH EMPLOYEE_ID = 113
+CONNECT BY PRIOR MANAGER_ID = EMPLOYEE_ID
+;
 
 -- 49. IT 부서장의 모든 부하직원을 계층조회한다.
+-- 49: 5 rows
+ SELECT LEVEL
+      , e.*
+   FROM EMPLOYEES e
+  START WITH EMPLOYEE_ID = (SELECT MANAGER_ID
+                              FROM DEPARTMENTS
+                             WHERE DEPARTMENT_NAME = 'IT')
+CONNECT BY PRIOR EMPLOYEE_ID = MANAGER_ID
+;
+
 
 -- 50. 모든 부서의 부서장들의 부하직원을 계층조회한다.
+-- 50: 147 rows
+ SELECT LEVEL
+      , e.*
+   FROM EMPLOYEES e
+  START WITH EMPLOYEE_ID IN (SELECT MANAGER_ID
+                              FROM DEPARTMENTS)
+CONNECT BY PRIOR EMPLOYEE_ID = MANAGER_ID
+;
